@@ -23,6 +23,8 @@
 @property (nonatomic, copy) NSString *downLoadedPath;
 @property (nonatomic, copy) NSString *downLoadingPath;
 @property (nonatomic, strong) NSOutputStream *outputStream;
+/** 下载任务 */
+@property (nonatomic , weak) NSURLSessionDataTask *dataTask;
 
 @end
 
@@ -38,9 +40,53 @@
 }
 
 
+//暂停
+//调用了几次继续,就要调用几次暂停,才可以继续
+
+- (void)pauseCurrentTask {
+    if (self.state == ZYCDownLoadStateDownLoading) {
+        self.state = ZYCDownLoadStatePause;
+        [self.dataTask suspend];
+    }
+}
+//取消
+- (void)cancelCurrentTask {
+    [self.session invalidateAndCancel];
+    self.session = nil;
+}
+- (void)cancelAndClear {
+    self.state = ZYCDownLoadStatePause;
+    [self cancelCurrentTask];
+    [ZYCFileTool removeFile:self.downLoadingPath];
+    //下载完成的文件 1.手动删除某个文件  2.清理缓存的时候
+}
+
+
+//继续动作
+//调用了几次暂停,就要调用几次继续,才可以继续
+- (void)resumeCurrentTask {
+    if (self.dataTask && self.state == ZYCDownLoadStatePause) {
+        [self.dataTask resume];
+        self.state = ZYCDownLoadStateDownLoading;
+    }
+}
+
 - (void)downLoader:(NSURL *)url {
     
- 
+    //1.从头开始下载
+    //2.任务存在继续下载
+    
+    
+    //判断当前的状态,如果是暂停状态可以继续
+    if ([url isEqual:self.dataTask.originalRequest.URL]) {
+        //判断是否是当前的状态
+        [self resumeCurrentTask];
+    
+        
+        return;
+    }
+    
+    
     NSString *fileName = url.lastPathComponent;
     self.downLoadedPath = [kCachePath stringByAppendingPathComponent:fileName];
     self.downLoadingPath = [kTmpPath stringByAppendingPathComponent:fileName];
@@ -49,6 +95,7 @@
     if ([ZYCFileTool fileExists:self.downLoadedPath]) {
         //下载文件已经存在
         NSLog(@"文件下载完成");
+        self.state = ZYCDownLoadStatePauseSuccess;
         return;
     }
     
@@ -61,19 +108,9 @@
     _tmpSize = [ZYCFileTool fileSize:self.downLoadingPath];
     [self downLoadWithURL:url offset:_tmpSize];
     
-    
-    
-//    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
-//    request.HTTPMethod = @"HEAD";
-//    NSURLResponse *response = nil;
-//    NSError *error = nil;
-//    [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
-//    //资源已经下载完毕
-//    //需要响应头信息
-//    if (error == nil) {
-//        NSLog(@"%@", response);
-//    }
 }
+
+
 
 
 #pragma mark ---  NSURLSessionDataDelegate
@@ -102,6 +139,8 @@ didReceiveResponse:(NSHTTPURLResponse *)response
         [ZYCFileTool moveFile:self.downLoadingPath toPath:self.downLoadedPath];
         //2.取消本次请求
         completionHandler(NSURLSessionResponseCancel);
+        //修改状态
+        self.state = ZYCDownLoadStatePauseSuccess;
         return;
     }
     
@@ -109,14 +148,17 @@ didReceiveResponse:(NSHTTPURLResponse *)response
         //1. 删除临时缓存
         NSLog(@"删除临时缓存");
         [ZYCFileTool removeFile:self.downLoadingPath];
-        //2.从0开始下载
+        //2.取消请求
+        completionHandler(NSURLSessionResponseCancel);
+        //3.从0开始下载
         NSLog(@"重新开始下载");
         [self downLoader:response.URL];
-        //3.取消请求
-        completionHandler(NSURLSessionResponseCancel);
+     
+        return;
     }
     //继续接收数据
     //确定开始下载数据
+    self.state = ZYCDownLoadStateDownLoading;
     self.outputStream = [NSOutputStream outputStreamToFileAtPath:self.downLoadingPath append:YES];
     [self.outputStream open];
     completionHandler(NSURLSessionResponseAllow);
@@ -133,10 +175,20 @@ didReceiveResponse:(NSHTTPURLResponse *)response
     NSLog(@"请求完成");
     if (error == nil) {
         //不一定成功。
+        [ZYCFileTool moveFile:self.downLoadingPath toPath:self.downLoadedPath];
+        self.state = ZYCDownLoadStatePauseSuccess;
     }else {
-        [self.outputStream close];
+        NSLog(@"error -- %zd----%@", error.code, error.localizedDescription);
+        //取消, 断网
+        if (error.code == -999) {
+            self.state = ZYCDownLoadStatePause;
+        }else {
+            self.state = ZYCDownLoadStatePauseFailed;
+        }
     }
     
+    [self.outputStream close];
+
 }
 
 #pragma mark --- Private methods
@@ -145,11 +197,17 @@ didReceiveResponse:(NSHTTPURLResponse *)response
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:0];
     [request setValue:[NSString stringWithFormat:@"bytes=%lld-", offset] forHTTPHeaderField:@"Range"];
     //session 分配的task默认是任务挂起的状态
-    NSURLSessionDataTask *dataTask = [self.session dataTaskWithRequest:request];
-    [dataTask resume];
-    
+    self.dataTask = [self.session dataTaskWithRequest:request];
+    [self resumeCurrentTask];
 }
 
+#pragma mark -- 事件/数据   
+- (void)setState:(ZYCDownLoadState)state {
+    if (_state == state) {
+        return;
+    }
+    _state = state;
+}
 
 
 

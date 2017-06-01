@@ -13,6 +13,7 @@
 
 @property (nonatomic, strong) ZYCDownLoader *downLoader;
 
+@property (nonatomic, weak) NSTimer *timer;
 
 @end
 
@@ -28,17 +29,25 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
-    
   
 }
-
-
-
-- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
-    [super touchesBegan:touches withEvent:event];
+- (IBAction)download:(id)sender {
     NSURL *url = [NSURL URLWithString:@"https://raw.githubusercontent.com/zyw113/ZYWStock/master/resourse/demo3.gif"];
     [self.downLoader downLoader:url];
 }
+
+- (IBAction)pause:(id)sender {
+    [self.downLoader pauseCurrentTask];
+}
+- (IBAction)cancel:(id)sender {
+    [self.downLoader cancelCurrentTask];
+    
+}
+- (IBAction)cancelAndClear:(id)sender {
+    [self.downLoader cancelAndClear];
+    
+}
+
 
 
 @end
