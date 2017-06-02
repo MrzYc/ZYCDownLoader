@@ -49,16 +49,19 @@
         [self.dataTask suspend];
     }
 }
+
 //取消
 - (void)cancelCurrentTask {
     [self.session invalidateAndCancel];
     self.session = nil;
 }
+
 - (void)cancelAndClear {
     self.state = ZYCDownLoadStatePause;
     [self cancelCurrentTask];
     [ZYCFileTool removeFile:self.downLoadingPath];
     //下载完成的文件 1.手动删除某个文件  2.清理缓存的时候
+    
 }
 
 
