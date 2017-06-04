@@ -36,6 +36,8 @@ typedef void (^FailBlokcType) ();
 //取消任务,清除缓存
 - (void)cancelAndClear;
 
+- (void)resumeCurrentTask;
+
 
 ///数据
 /**  */

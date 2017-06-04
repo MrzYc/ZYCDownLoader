@@ -13,6 +13,8 @@
 		244877E61ED82D9500C20372 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 244877E41ED82D9500C20372 /* Main.storyboard */; };
 		244877E81ED82D9500C20372 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 244877E71ED82D9500C20372 /* Assets.xcassets */; };
 		244877EB1ED82D9500C20372 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 244877E91ED82D9500C20372 /* LaunchScreen.storyboard */; };
+		7E87FAE81EE3C91D00863BD0 /* ZYCDownLoadManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 7E87FAE71EE3C91D00863BD0 /* ZYCDownLoadManager.m */; };
+		7E87FAEE1EE3EFD100863BD0 /* NSString+MD5Str.m in Sources */ = {isa = PBXBuildFile; fileRef = 7E87FAED1EE3EFD100863BD0 /* NSString+MD5Str.m */; };
 		7E98805A1ED8684D00EEC442 /* ZYCDownLoader.m in Sources */ = {isa = PBXBuildFile; fileRef = 7E9880571ED8684D00EEC442 /* ZYCDownLoader.m */; };
 		7E98805B1ED8684D00EEC442 /* ZYCFileTool.m in Sources */ = {isa = PBXBuildFile; fileRef = 7E9880591ED8684D00EEC442 /* ZYCFileTool.m */; };
 /* End PBXBuildFile section */
@@ -28,6 +30,10 @@
 		244877E71ED82D9500C20372 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		244877EA1ED82D9500C20372 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		244877EC1ED82D9500C20372 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		7E87FAE61EE3C91D00863BD0 /* ZYCDownLoadManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZYCDownLoadManager.h; sourceTree = "<group>"; };
+		7E87FAE71EE3C91D00863BD0 /* ZYCDownLoadManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZYCDownLoadManager.m; sourceTree = "<group>"; };
+		7E87FAEC1EE3EFD100863BD0 /* NSString+MD5Str.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+MD5Str.h"; sourceTree = "<group>"; };
+		7E87FAED1EE3EFD100863BD0 /* NSString+MD5Str.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+MD5Str.m"; sourceTree = "<group>"; };
 		7E9880561ED8684D00EEC442 /* ZYCDownLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZYCDownLoader.h; sourceTree = "<group>"; };
 		7E9880571ED8684D00EEC442 /* ZYCDownLoader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZYCDownLoader.m; sourceTree = "<group>"; };
 		7E9880581ED8684D00EEC442 /* ZYCFileTool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZYCFileTool.h; sourceTree = "<group>"; };
@@ -93,6 +99,10 @@
 				7E9880571ED8684D00EEC442 /* ZYCDownLoader.m */,
 				7E9880581ED8684D00EEC442 /* ZYCFileTool.h */,
 				7E9880591ED8684D00EEC442 /* ZYCFileTool.m */,
+				7E87FAE61EE3C91D00863BD0 /* ZYCDownLoadManager.h */,
+				7E87FAE71EE3C91D00863BD0 /* ZYCDownLoadManager.m */,
+				7E87FAEC1EE3EFD100863BD0 /* NSString+MD5Str.h */,
+				7E87FAED1EE3EFD100863BD0 /* NSString+MD5Str.m */,
 			);
 			path = Classes;
 			sourceTree = "<group>";
@@ -171,9 +181,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				244877E31ED82D9400C20372 /* ViewController.m in Sources */,
+				7E87FAEE1EE3EFD100863BD0 /* NSString+MD5Str.m in Sources */,
 				244877E01ED82D9400C20372 /* AppDelegate.m in Sources */,
 				244877DD1ED82D9400C20372 /* main.m in Sources */,
 				7E98805A1ED8684D00EEC442 /* ZYCDownLoader.m in Sources */,
+				7E87FAE81EE3C91D00863BD0 /* ZYCDownLoadManager.m in Sources */,
 				7E98805B1ED8684D00EEC442 /* ZYCFileTool.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
