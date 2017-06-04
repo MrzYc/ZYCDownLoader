@@ -74,21 +74,36 @@
     }
 }
 
+- (void)downLoader:(NSURL *)url downLoadInfo:(DownLoadInfoType)downLoadInfo progress:(ProgressChangeBlockType)progressBlock success:(SuccessBlockType)successBlcok failed:(FailBlokcType)failedBlcok {
+    //给所有的Block赋值
+    self.downLoadInfo = downLoadInfo;
+    self.progressChange = progressBlock;
+    self.successBlock = successBlcok;
+    self.failBlcok = failedBlcok;
+    //开始下载
+    [self downLoader:url];
+    
+}
+
 - (void)downLoader:(NSURL *)url {
     
     //1.从头开始下载
     //2.任务存在继续下载
     
-    
+    //当前任务肯定存在
     //判断当前的状态,如果是暂停状态可以继续
     if ([url isEqual:self.dataTask.originalRequest.URL]) {
+        //下载失败
         //判断是否是当前的状态
-        [self resumeCurrentTask];
-    
-        
-        return;
+        if (self.state == ZYCDownLoadStatePause) {
+            //继续
+            [self resumeCurrentTask];
+            return;
+        }
     }
     
+    // 1.任务不存在 2.任务存在 3.任务存在的，但是任务的URL地址 不同
+    [self cancelCurrentTask];
     
     NSString *fileName = url.lastPathComponent;
     self.downLoadedPath = [kCachePath stringByAppendingPathComponent:fileName];
@@ -97,7 +112,7 @@
 
     if ([ZYCFileTool fileExists:self.downLoadedPath]) {
         //下载文件已经存在
-        NSLog(@"文件下载完成");
+//        NSLog(@"文件下载完成");
         self.state = ZYCDownLoadStatePauseSuccess;
         return;
     }
@@ -110,21 +125,17 @@
     //文件存在,获取文件当前大小
     _tmpSize = [ZYCFileTool fileSize:self.downLoadingPath];
     [self downLoadWithURL:url offset:_tmpSize];
-    
 }
 
 
-
-
 #pragma mark ---  NSURLSessionDataDelegate
-
 //第一次接受相应的时候相应调用（响应头，并没有具体的资源内容）
 //通过这方法里面系统的会掉代码块，可以控制，是否继续请求，还是取消本次请求
 - (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask
 didReceiveResponse:(NSHTTPURLResponse *)response
  completionHandler:(void (^)(NSURLSessionResponseDisposition disposition))completionHandler {
     //总大小
-    NSLog(@"%@", response);
+//    NSLog(@"%@", response);
     
     
     // 取资源总大小
@@ -136,9 +147,14 @@ didReceiveResponse:(NSHTTPURLResponse *)response
        _totalSize =  [[contentRangeStr componentsSeparatedByString:@"/"].lastObject longLongValue];
     }
     
+    //传递数据给外界： 总大小 & 本地存储的文件路径
+    if (self.downLoadInfo != nil) {
+        self.downLoadInfo(_totalSize);
+    }
+    
     if (_tmpSize == _totalSize) {
         //1.移动到下载文件夹
-        NSLog(@"移动文件到下载文件夹");
+//        NSLog(@"移动文件到下载文件夹");
         [ZYCFileTool moveFile:self.downLoadingPath toPath:self.downLoadedPath];
         //2.取消本次请求
         completionHandler(NSURLSessionResponseCancel);
@@ -149,12 +165,12 @@ didReceiveResponse:(NSHTTPURLResponse *)response
     
     if (_tmpSize > _totalSize) {
         //1. 删除临时缓存
-        NSLog(@"删除临时缓存");
+//        NSLog(@"删除临时缓存");
         [ZYCFileTool removeFile:self.downLoadingPath];
         //2.取消请求
         completionHandler(NSURLSessionResponseCancel);
         //3.从0开始下载
-        NSLog(@"重新开始下载");
+//        NSLog(@"重新开始下载");
         [self downLoader:response.URL];
      
         return;
@@ -169,19 +185,25 @@ didReceiveResponse:(NSHTTPURLResponse *)response
 
 //当用户确定继续接受数据的时候
 - (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveData:(NSData *)data {
+    
+    _tmpSize += data.length;
+    _totalSize += data.length;
+    
+    self.progress = 1.0 *  _tmpSize / _totalSize;
+    //向输出流中写入数据
     [self.outputStream write:data.bytes maxLength:data.length];
-    NSLog(@"接收后续数据");
+//    NSLog(@"接收后续数据");
 }
 
 // 请求完成的时候调用(请求成功/失败)
 - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error {
-    NSLog(@"请求完成");
+//    NSLog(@"请求完成");
     if (error == nil) {
         //不一定成功。
         [ZYCFileTool moveFile:self.downLoadingPath toPath:self.downLoadedPath];
         self.state = ZYCDownLoadStatePauseSuccess;
     }else {
-        NSLog(@"error -- %zd----%@", error.code, error.localizedDescription);
+//        NSLog(@"error -- %zd----%@", error.code, error.localizedDescription);
         //取消, 断网
         if (error.code == -999) {
             self.state = ZYCDownLoadStatePause;
@@ -210,8 +232,25 @@ didReceiveResponse:(NSHTTPURLResponse *)response
         return;
     }
     _state = state;
+    
+    if (self.stateChage) {
+        self.stateChage(_state);
+    }
+    
+    if (_state == ZYCDownLoadStatePauseSuccess && self.successBlock) {
+        self.successBlock(self.downLoadedPath);
+    }
+    
+    if (_state == ZYCDownLoadStatePauseFailed && self.failBlcok) {
+        self.failBlcok();
+    }
 }
 
-
+- (void)setProgress:(float)progress {
+    _progress = progress;
+    if (self.progressChange) {
+        self.progressChange(_progress);
+    }
+}
 
 @end

@@ -33,7 +33,24 @@
 }
 - (IBAction)download:(id)sender {
     NSURL *url = [NSURL URLWithString:@"https://raw.githubusercontent.com/zyw113/ZYWStock/master/resourse/demo3.gif"];
-    [self.downLoader downLoader:url];
+    
+    [self.downLoader downLoader:url downLoadInfo:^(long long totalSize) {
+        NSLog(@"下载信息--%lld", totalSize);
+    } progress:^(float progresss) {
+        NSLog(@"下载进度--%f", progresss);
+    } success:^(NSString *filePath) {
+        NSLog(@"下载成功--路径:%@", filePath);
+
+    } failed:^{
+        NSLog(@"下载失败了");
+    }];
+    
+    [self.downLoader setStateChage:^(ZYCDownLoadState state){
+        NSLog(@"---%zd", state);
+
+    }];
+    
+//    [self.downLoader downLoader:url];
 }
 
 - (IBAction)pause:(id)sender {
